@@ -11,6 +11,7 @@ local log = require("utils/logging")
 
 
 server:static_file("/", "docs.html")
+server:static_file("/openapi.yaml", "openapi.yaml")
 
 
 -- CLUB MANAGEMENT
@@ -443,6 +444,46 @@ server:get("/status", function(req)
     return {status = status.fields.club_status}  
 end)
 
+server:get("/suspension", function(req)
+    log.request(req:uri(), req:headers())
+    if auth.checkRead(req:headers().authorization) then
+        local params = url.parse_query(req:uri())
+        if params.club_name == nil then
+            return {error = "Missing club_name parameter"}
+        end
+        local formula = airtable.safeFormula("club_name", params.club_name)
+        local fields = {"club_suspension_status"}
+        local club = airtable.list_records("Clubs", "Full Grid", {filterByFormula = formula, timeZone = "America/New_York", fields = fields}).records[1]
+        if club == nil then
+            return {error = "Club not found"}
+        end
+        local suspension_status = club.fields.club_suspension_status or false
+        return {club_name = params.club_name, suspended = suspension_status}
+    else
+        return {error = "Unauthorized"}
+    end
+end)
+
+server:get("/tokens", function(req)
+    log.request(req:uri(), req:headers())
+    if auth.checkRead(req:headers().authorization) then
+        local params = url.parse_query(req:uri())
+        if params.club_name == nil then
+            return {error = "Missing club_name parameter"}
+        end
+        local formula = airtable.safeFormula("club_name", params.club_name)
+        local fields = {"tokens"}
+        local club = airtable.list_records("Clubs", "Full Grid", {filterByFormula = formula, timeZone = "America/New_York", fields = fields}).records[1]
+        if club == nil then
+            return {error = "Club not found"}
+        end
+        local tokens = club.fields.tokens or 0
+        return {club_name = params.club_name, tokens = tokens}
+    else
+        return {error = "Unauthorized"}
+    end
+end)
+
 ------------------
 -- POST RECORDS --
 ------------------
@@ -512,6 +553,57 @@ server:post("/level", function(req)
         local id = club.id
         local updateClub = airtable.update_record("Clubs", id, {level = url.strip_quotes(level)})
         return {new_level = updateClub.fields.level}
+    else 
+        return {error = "Unauthorized"}
+    end
+end)
+
+server:post("/suspension", function(req)
+    log.request(req:uri(), req:headers())
+    if auth.checkWrite(req:headers().authorization) then
+        local params = url.parse_query(req:uri())
+        local club_name = params.club_name
+        local suspended = params.suspended
+        if club_name == nil or suspended == nil then
+            return {error = "Missing parameters (club_name, suspended)"}
+        end
+        local formula = airtable.safeFormula("club_name", club_name)
+        local club = airtable.list_records("Clubs", "Full Grid View", {filterByFormula = formula}).records[1]
+        if club == nil then
+            return {error = "Club not found"}
+        end
+        local id = club.id
+        local suspendedValue = suspended == "true" or suspended == true
+        local updateClub = airtable.update_record("Clubs", id, {club_suspension_status = suspendedValue})
+        local newStatus = updateClub.fields.club_suspension_status or false
+        return {club_name = club_name, suspended = newStatus}
+    else 
+        return {error = "Unauthorized"}
+    end
+end)
+
+server:post("/tokens", function(req)
+    log.request(req:uri(), req:headers())
+    if auth.checkWrite(req:headers().authorization) then
+        local params = url.parse_query(req:uri())
+        local club_name = params.club_name
+        local tokens = params.tokens
+        if club_name == nil or tokens == nil then
+            return {error = "Missing parameters (club_name, tokens)"}
+        end
+        local formula = airtable.safeFormula("club_name", club_name)
+        local club = airtable.list_records("Clubs", "Full Grid View", {filterByFormula = formula}).records[1]
+        if club == nil then
+            return {error = "Club not found"}
+        end
+        local id = club.id
+        local tokensValue = tonumber(tokens)
+        if tokensValue == nil then
+            return {error = "Invalid tokens value, must be a number"}
+        end
+        local updateClub = airtable.update_record("Clubs", id, {tokens = tokensValue})
+        local newTokens = updateClub.fields.tokens or 0
+        return {club_name = club_name, tokens = newTokens}
     else 
         return {error = "Unauthorized"}
     end
