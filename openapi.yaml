@@ -977,6 +977,213 @@ paths:
                     type: string
                     example: "Unauthorized"
 
+  /suspension:
+    get:
+      summary: Get club suspension status
+      description: Returns the suspension status of the specified club. Requires Read permissions.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - in: query
+          name: club_name
+          schema:
+            type: string
+          required: true
+          description: Name of the club
+          example: "Example Club"
+      responses:
+        '200':
+          description: Club suspension status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  club_name:
+                    type: string
+                    example: "Example Club"
+                  suspended:
+                    type: boolean
+                    example: false
+        '400':
+          description: Missing parameters or club not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Missing club_name parameter"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+    post:
+      summary: Update club suspension status
+      description: Updates the suspension status of a club (checkbox field). Requires Write permissions.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - in: query
+          name: club_name
+          schema:
+            type: string
+          required: true
+          description: Name of the club
+          example: "Example Club"
+        - in: query
+          name: suspended
+          schema:
+            type: string
+            enum: ["true", "false"]
+          required: true
+          description: Suspension status (true or false)
+          example: "true"
+      responses:
+        '200':
+          description: Suspension status updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  club_name:
+                    type: string
+                    example: "Example Club"
+                  suspended:
+                    type: boolean
+                    example: true
+        '400':
+          description: Missing parameters or club not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Missing parameters (club_name, suspended)"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+
+  /tokens:
+    get:
+      summary: Get club tokens
+      description: Returns the token count for the specified club. Requires Read permissions.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - in: query
+          name: club_name
+          schema:
+            type: string
+          required: true
+          description: Name of the club
+          example: "Example Club"
+      responses:
+        '200':
+          description: Club token count
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  club_name:
+                    type: string
+                    example: "Example Club"
+                  tokens:
+                    type: integer
+                    example: 100
+        '400':
+          description: Missing parameters or club not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Missing club_name parameter"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+    post:
+      summary: Update club tokens
+      description: Updates the token count for a club. Requires Write permissions.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - in: query
+          name: club_name
+          schema:
+            type: string
+          required: true
+          description: Name of the club
+          example: "Example Club"
+        - in: query
+          name: tokens
+          schema:
+            type: integer
+          required: true
+          description: New token count (must be a number)
+          example: 150
+      responses:
+        '200':
+          description: Tokens updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  club_name:
+                    type: string
+                    example: "Example Club"
+                  tokens:
+                    type: integer
+                    example: 150
+        '400':
+          description: Missing parameters, invalid tokens value, or club not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid tokens value, must be a number"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+
   ###################
   # ANNOUNCEMENT MANAGEMENT
   ###################
