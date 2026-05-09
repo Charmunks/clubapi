@@ -155,14 +155,7 @@ server:get("/leader", function(req)
         elseif leader.fields.rel_co_leader_to_clubs then
             club = leader.fields.rel_co_leader_to_clubs[1]
         end
-        if club == nil then
-            return {club_name = nil, club_status = nil}
-        end
-        local clubRecord = airtable.get_record("Clubs", club)
-        if clubRecord == nil then
-            return {club_name = nil, club_status = nil}
-        end
-        local clubfields = clubRecord.fields
+        local clubfields = airtable.get_record("Clubs", club).fields
         local club_name = clubfields.club_name
         local club_status = clubfields.club_status
         return {club_name = club_name, club_status = club_status}
@@ -705,27 +698,6 @@ server:post("/announce", function(req)
         return {success = true, membersUpdated = updated}
     else
         return {error = "Unauthorized"}
-    end
-end)
-
--- API KEY MANAGEMENT
-
-server:post("/key/revoke", function(req)
-    log.request(req:uri(), req:headers())
-    local params = url.parse_query(req:uri())
-    if params.key == nil then
-        return {success = false}
-    end
-    local record = auth.getKeyRecord(params.key)
-    if record == nil then
-        return {success = false}
-    end
-    local owner_email = record.fields.name or ""
-    local result = airtable.delete_record("API Keys", record.id)
-    if result and result.deleted then
-        return {success = true, owner_email = owner_email}
-    else
-        return {success = false}
     end
 end)
 
