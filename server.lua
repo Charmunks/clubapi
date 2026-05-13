@@ -210,13 +210,13 @@ server:get("/ships", function(req)
     if params.club_name == nil then
         return {error = "Missing club_name parameter"}
     end
-    local formula = airtable.safeFormula("club_name (from Clubs)", params.club_name)
+    local formula = airtable.safeFormula("club_name (from link_clubs)", params.club_name)
     if auth.checkRead(req:headers().authorization) == false then
-        local fields = {"workshop", "Rating", "code_url", "club_name (from Clubs)", "YSWS–Name (from Unified YSWS Database)"}
-        local ships = airtable.list_records("Club Ships", "Grid view", {filterByFormula = formula, timeZone = "America/New_York", fields = fields}).records
+        local fields = {"code_url", "ysws", "email", "club_name (from link_clubs)"}
+        local ships = airtable.list_records("Ships", "Grid view", {filterByFormula = formula, timeZone = "America/New_York", fields = fields}).records
         return ships
     else 
-        local ships = airtable.list_records("Club Ships", "Grid view", {filterByFormula = formula, timeZone = "America/New_York"}).records
+        local ships = airtable.list_records("Ships", "Grid view", {filterByFormula = formula, timeZone = "America/New_York"}).records
         return ships
     end
 end)
