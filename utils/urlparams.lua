@@ -17,6 +17,11 @@ function url.parse_query(uri)
         value = value:gsub("%+", " ")
         value = value:gsub("%%(%x%x)", function(h) return string.char(tonumber(h, 16)) end)
 
+        -- Treat '+' as a space after decoding, except for fields where a literal '+' is expected (e.g. emails or announcement messages)
+        if key ~= "email" and key ~= "new_email" and key ~= "old_email" and key ~= "message" then
+            value = value:gsub("%+", " ")
+        end
+
         if not (value:sub(1, 1) == '"' and value:sub(-1) == '"') then
             value = '"' .. value .. '"'
         end
