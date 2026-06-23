@@ -223,6 +223,21 @@ end)
 
 -- MEMBER MANAGEMENT
 
+server:get("/member/ships", function(req)
+    log.request(req:uri(), req:headers())
+    if auth.checkRead(req:headers().authorization) then
+        local params = url.parse_query(req:uri())
+        if params.email == nil then
+            return {error = "Missing email parameter"}
+        end
+        local formula = airtable.safeFormula("email", params.email)
+        local ships = airtable.list_records("Ships", "Grid view", {filterByFormula = formula, timeZone = "America/New_York"}).records
+        return ships
+    else
+        return {error = "Unauthorized"}
+    end
+end)
+
 server:get("/member", function(req)
     log.request(req:uri(), req:headers())
     if auth.checkRead(req:headers().authorization) then
