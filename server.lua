@@ -539,11 +539,14 @@ server:post("/leader/change", function(req)
             return {error = "Failed to create new leader record"}
         end
 
-        -- 3. Delete the old leader record
+        -- 3. Clear the old leader's club relations
         local oldFormula = airtable.safeFormula("email", old_email_clean)
         local oldData = airtable.list_records("Leaders", "Grid view", {filterByFormula = oldFormula})
         if oldData and oldData.records and #oldData.records > 0 then
-            airtable.delete_record("Leaders", oldData.records[1].id)
+            airtable.update_record("Leaders", oldData.records[1].id, {
+                ["rel_leader_to_clubs"] = {},
+                ["rel_co_leader_to_clubs"] = {}
+            })
         end
 
         -- 4. Check for the automation-generated form value
