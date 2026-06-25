@@ -23,21 +23,25 @@ end)
 server:get("/clubs/map", function(req, res)
     log.request(req:uri(), req:headers())
     res:set_header("Access-Control-Allow-Origin", "*")
-    local fields = {"club_name", "venue_lat_fuzz", "venue_lng_fuzz", "club_status"}
+    local fields = {"club_name", "venue_lat_fuzz", "venue_lng_fuzz", "club_status", "club_website"}
     local result = {}
     local offset = nil
     repeat
         local data = airtable.list_records("Clubs", "Map", {fields = fields, offset = offset})
         if data and data.records then
             for _, club in ipairs(data.records) do
+                local clubFields = {
+                    club_name = club.fields.club_name,
+                    venue_lat_fuzz = club.fields.venue_lat_fuzz,
+                    venue_lng_fuzz = club.fields.venue_lng_fuzz,
+                    club_status = club.fields.club_status
+                }
+                if club.fields.club_website then
+                    clubFields.club_website = club.fields.club_website
+                end
                 table.insert(result, {
                     id = club.id,
-                    fields = {
-                        club_name = club.fields.club_name,
-                        venue_lat_fuzz = club.fields.venue_lat_fuzz,
-                        venue_lng_fuzz = club.fields.venue_lng_fuzz,
-                        club_status = club.fields.club_status
-                    }
+                    fields = clubFields
                 })
             end
             offset = data.offset
