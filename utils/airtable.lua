@@ -96,6 +96,9 @@ function airtable.list_records(table_name, view, params)
 	end
 
 	local base_id, err = get_base_id()
+	if params and type(params) == "table" and params.base_id then
+		base_id = params.base_id
+	end
 	if not base_id then
 		print({ error = "missing_base_id", message = err })
 		return nil
@@ -111,7 +114,9 @@ function airtable.list_records(table_name, view, params)
 	local body = {}
 	if params and type(params) == "table" then
 		for k, v in pairs(params) do
-			body[k] = v
+			if k ~= "base_id" then
+				body[k] = v
+			end
 		end
 		if body.filterByFormula then
 			local valid, err = airtable.validateFormula(body.filterByFormula)
@@ -220,7 +225,7 @@ function airtable.get_record(table_name, record_id)
 	return ok2 and dec or nil
 end
 
-function airtable.create_record(table_name, fields)
+function airtable.create_record(table_name, fields, override_base_id)
 	if type(table_name) ~= "string" or table_name == "" then
 		print({ error = "invalid_table_name", provided = table_name })
 		return nil
@@ -231,6 +236,9 @@ function airtable.create_record(table_name, fields)
 	end
 
 	local base_id, err = get_base_id()
+	if override_base_id and type(override_base_id) == "string" and override_base_id ~= "" then
+		base_id = override_base_id
+	end
 	if not base_id then
 		print({ error = "missing_base_id", message = err })
 		return nil
@@ -281,7 +289,7 @@ function airtable.create_record(table_name, fields)
 	return ok2 and dec or nil
 end
 
-function airtable.update_record(table_name, record_id, fields)
+function airtable.update_record(table_name, record_id, fields, override_base_id)
 	if type(table_name) ~= "string" or table_name == "" then
 		print({ error = "invalid_table_name", provided = table_name })
 		return nil
@@ -296,6 +304,9 @@ function airtable.update_record(table_name, record_id, fields)
 	end
 
 	local base_id, err = get_base_id()
+	if override_base_id and type(override_base_id) == "string" and override_base_id ~= "" then
+		base_id = override_base_id
+	end
 	if not base_id then
 		print({ error = "missing_base_id", message = err })
 		return nil
