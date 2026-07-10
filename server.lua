@@ -196,9 +196,9 @@ server:get("/ships", function(req, res)
     if params.club_name == nil then
         return {error = "Missing club_name parameter"}
     end
-    local formula = airtable.safeFormula("club_name (from link_clubs)", params.club_name)
+    local formula = airtable.safeFormula("club_name", params.club_name)
     if auth.checkRead(req:headers().authorization) == false then
-        local fields = {"code_url", "ysws", "email", "club_name (from link_clubs)"}
+        local fields = {"Code URL", "YSWS", "Email", "club_name"}
         local ships = airtable.list_records("Ships", "Grid view", {filterByFormula = formula, timeZone = "America/New_York", fields = fields}).records
         return ships
     else 
