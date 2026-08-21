@@ -192,18 +192,17 @@ end)
 
 server:get("/ships", function(req, res)
     log.request(req:uri(), req:headers())
-    local params = url.parse_query(req:uri())
-    if params.club_name == nil then
-        return {error = "Missing club_name parameter"}
-    end
-    local formula = airtable.safeFormula("club_name", params.club_name)
-    if auth.checkRead(req:headers().authorization) == false then
-        local fields = {"Code URL", "YSWS", "Email", "club_name"}
-        local ships = airtable.list_records("Ships", "Grid view", {filterByFormula = formula, timeZone = "America/New_York", fields = fields}).records
-        return ships
-    else 
+    if auth.checkRead(req:headers().authorization) then
+        local params = url.parse_query(req:uri())
+        if params.club_name == nil then
+            return {error = "Missing club_name parameter"}
+        end
+        local formula = airtable.safeFormula("club_name", params.club_name)
         local ships = airtable.list_records("Ships", "Grid view", {filterByFormula = formula, timeZone = "America/New_York"}).records
         return ships
+    else
+        res:set_status_code(403)
+        return {error = "Unauthorized"}
     end
 end)
 
