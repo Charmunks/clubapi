@@ -96,7 +96,7 @@ server:get("/club", function(req, res)
         end
         return club
     else
-        local fields = {"club_name", "status", "club_website"}
+        local fields = {"club_name", "status", "club_website", "leader_slack_id", "venue_address_country"}
         local club = airtable.list_records("Clubs", "Grid view", {filterByFormula = formula, timeZone = "America/New_York", fields = fields}).records[1]
         if club == nil then
             return {club_name = nil}
@@ -106,7 +106,9 @@ server:get("/club", function(req, res)
             fields = {
                 club_name = club.fields.club_name,
                 status = club.fields.status,
-                club_website = club.fields.club_website
+                club_website = club.fields.club_website,
+                leader_slack_id = club.fields.leader_slack_id,
+                venue_address_country = club.fields.venue_address_country
             }
         }
     end
@@ -203,17 +205,28 @@ end)
 
 server:get("/ships", function(req, res)
     log.request(req:uri(), req:headers())
+    local params = url.parse_query(req:uri())
+    if params.club_name == nil then
+        return {error = "Missing club_name parameter"}
+    end
+    local formula = airtable.safeFormula("club_name", params.club_name)
     if auth.checkRead(req:headers().authorization) then
-        local params = url.parse_query(req:uri())
-        if params.club_name == nil then
-            return {error = "Missing club_name parameter"}
-        end
-        local formula = airtable.safeFormula("club_name", params.club_name)
         local ships = airtable.list_records("Ships", "Grid view", {filterByFormula = formula, timeZone = "America/New_York"}).records
         return ships
     else
-        res:set_status_code(403)
-        return {error = "Unauthorized"}
+        local fields = {"ysws"}
+        local ships = airtable.list_records("Ships", "Grid view", {filterByFormula = formula, timeZone = "America/New_York", fields = fields}).records
+        local result = {}
+        for _, ship in ipairs(ships) do
+            table.insert(result, {
+                id = ship.id,
+                createdTime = ship.createdTime,
+                fields = {
+                    ysws = ship.fields.ysws
+                }
+            })
+        end
+        return result
     end
 end)
 
