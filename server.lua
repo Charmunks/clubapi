@@ -84,20 +84,31 @@ end)
 
 server:get("/club", function(req, res)
     log.request(req:uri(), req:headers())
+    local params = url.parse_query(req:uri())
+    if params.name == nil then
+        return {error = "Missing name parameter"}
+    end
+    local formula = airtable.safeFormula("club_name", params.name)
     if auth.checkRead(req:headers().authorization) then
-        local params = url.parse_query(req:uri())
-        if params.name == nil then
-            return {error = "Missing name parameter"}
-        end
-        local formula = airtable.safeFormula("club_name", params.name)
         local club = airtable.list_records("Clubs", "Grid view", {filterByFormula = formula, timeZone = "America/New_York"}).records[1]
         if club == nil then
             return {club_name = nil}
         end
         return club
     else
-        res:set_status_code(403)
-        return {error = "Unauthorized"}
+        local fields = {"club_name", "status", "club_website"}
+        local club = airtable.list_records("Clubs", "Grid view", {filterByFormula = formula, timeZone = "America/New_York", fields = fields}).records[1]
+        if club == nil then
+            return {club_name = nil}
+        end
+        return {
+            id = club.id,
+            fields = {
+                club_name = club.fields.club_name,
+                status = club.fields.status,
+                club_website = club.fields.club_website
+            }
+        }
     end
 end)
 
